@@ -16,6 +16,26 @@ AR_TZ = timezone(timedelta(hours=-3))
 # Campañas a excluir (contienen estas palabras en el nombre, case-insensitive)
 EXCLUDED_KEYWORDS = ["mayorista"]
 
+# Mapeo de categorías por keywords en el nombre del adset
+CATEGORY_RULES = [
+    ("Camisas", ["camisa"]),
+    ("Remeras O", ["remeras_o", "remeras_O", "remera_o"]),
+    ("Remeras V", ["remerasv", "remeras_v", "remerav"]),
+    ("Wafle", ["wafle"]),
+    ("Joggins", ["joggin"]),
+    ("Gabardina", ["gabardina"]),
+    ("Buzos", ["buzo"]),
+]
+
+
+def classify_category(adset_name):
+    """Clasifica un adset en una categoría de producto."""
+    name_lower = adset_name.lower()
+    for category, keywords in CATEGORY_RULES:
+        if any(kw in name_lower for kw in keywords):
+            return category
+    return "Otros"
+
 
 def meta_api_get(endpoint, params=None, access_token=None):
     if params is None:
@@ -175,6 +195,7 @@ def _get_adsets_with_insights(campaign_id, time_range, access_token):
 
         results.append({
             "adset": adset_name,
+            "category": classify_category(adset_name),
             "audience": audience,
             "spend": spend,
             "impressions": impressions,

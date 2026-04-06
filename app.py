@@ -898,7 +898,7 @@ if "campaigns" in st.session_state:
     # =============================================
     #  TABS: Campañas / Anuncios
     # =============================================
-    tab_campaigns, tab_ads = st.tabs(["Campañas", "Anuncios"])
+    tab_campaigns, tab_categories, tab_ads = st.tabs(["Campañas", "Categorías", "Anuncios"])
 
     # --- TAB: CAMPAÑAS ---
     with tab_campaigns:
@@ -945,6 +945,96 @@ if "campaigns" in st.session_state:
                     st.dataframe(adset_table, use_container_width=True, hide_index=True)
                 else:
                     st.caption("Sin conjuntos activos en este período.")
+
+    # --- TAB: CATEGORÍAS ---
+    with tab_categories:
+        st.markdown(
+            '<div class="section-label"><span>Rendimiento por categoría de producto</span><div class="line"></div></div>',
+            unsafe_allow_html=True,
+        )
+
+        # Collect all adsets from all campaigns and group by category
+        from collections import defaultdict
+        cat_data = defaultdict(lambda: {"spend": 0, "impressions": 0, "clicks": 0, "purchases": 0, "revenue": 0, "adsets": []})
+
+        for c in campaigns:
+            for a in c.get("adsets", []):
+                cat = a.get("category", "Otros")
+                cat_data[cat]["spend"] += a["spend"]
+                cat_data[cat]["impressions"] += a["impressions"]
+                cat_data[cat]["clicks"] += a["clicks"]
+                cat_data[cat]["purchases"] += a["purchases"]
+                cat_data[cat]["revenue"] += a["revenue"]
+                cat_data[cat]["adsets"].append(a["adset"])
+
+        # Sort categories by spend descending
+        sorted_cats = sorted(cat_data.items(), key=lambda x: x[1]["spend"], reverse=True)
+
+        # Summary table of all categories
+        cat_table = []
+        for cat_name, d in sorted_cats:
+            ctr = (d["clicks"] / d["impressions"] * 100) if d["impressions"] > 0 else 0
+            roas = (d["revenue"] / d["spend"]) if d["spend"] > 0 else 0
+            cpr = (d["spend"] / d["purchases"]) if d["purchases"] > 0 else 0
+            cat_table.append({
+                "Categoría": cat_name,
+                "Conjuntos": len(d["adsets"]),
+                "Inversión": fmt_money_table(d["spend"]),
+                "Impresiones": fmt_int(d["impressions"]),
+                "Clicks": fmt_int(d["clicks"]),
+                "CTR": fmt_pct(ctr),
+                "Compras": fmt_int(d["purchases"]),
+                "Ingresos": fmt_money_table(d["revenue"]),
+                "ROAS": fmt_roas(roas) if roas > 0 else "—",
+                "CPR": fmt_money_table(cpr) if cpr > 0 else "—",
+            })
+
+        st.dataframe(cat_table, use_container_width=True, hide_index=True)
+
+        st.markdown("")
+
+        # Expandable detail per category
+        for cat_name, d in sorted_cats:
+            cat_spend = d["spend"]
+            cat_purchases = d["purchases"]
+            cat_revenue = d["revenue"]
+            cat_roas = (cat_revenue / cat_spend) if cat_spend > 0 else 0
+
+            with st.expander(
+                f"**{cat_name}**  ·  {len(d['adsets'])} conjuntos  |  {fmt_money(cat_spend)}  |  ROAS {fmt_roas(cat_roas) if cat_roas > 0 else '—'}",
+                expanded=False,
+            ):
+                mc1, mc2, mc3, mc4, mc5, mc6 = st.columns(6)
+                mc1.metric("Inversión", fmt_money(cat_spend))
+                mc2.metric("Ingresos", fmt_money(cat_revenue))
+                mc3.metric("ROAS", fmt_roas(cat_roas) if cat_roas > 0 else "—")
+                mc4.metric("Compras", fmt_int(cat_purchases))
+                mc5.metric("Clicks", fmt_int(d["clicks"]))
+                cat_ctr = (d["clicks"] / d["impressions"] * 100) if d["impressions"] > 0 else 0
+                mc6.metric("CTR", fmt_pct(cat_ctr))
+
+                # Show adsets in this category
+                st.markdown('<p class="adset-label">Conjuntos incluidos</p>', unsafe_allow_html=True)
+
+                adset_rows = []
+                for c in campaigns:
+                    for a in c.get("adsets", []):
+                        if a.get("category") == cat_name:
+                            adset_rows.append({
+                                "Conjunto": a["adset"],
+                                "Audiencia": a["audience"],
+                                "Inversión": fmt_money_table(a["spend"]),
+                                "Impresiones": fmt_int(a["impressions"]),
+                                "Clicks": fmt_int(a["clicks"]),
+                                "CTR": fmt_pct(a["ctr"]),
+                                "Compras": fmt_int(a["purchases"]),
+                                "Ingresos": fmt_money_table(a["revenue"]),
+                                "ROAS": fmt_roas(a["roas"]) if a["roas"] > 0 else "—",
+                                "CPR": fmt_money_table(a["cpr"]) if a["cpr"] > 0 else "—",
+                            })
+
+                if adset_rows:
+                    st.dataframe(adset_rows, use_container_width=True, hide_index=True)
 
     # --- TAB: ANUNCIOS ---
     with tab_ads:
