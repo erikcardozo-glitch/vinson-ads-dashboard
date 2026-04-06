@@ -19,8 +19,8 @@ EXCLUDED_KEYWORDS = ["mayorista"]
 # Mapeo de categorías por keywords en el nombre del adset
 CATEGORY_RULES = [
     ("Camisas", ["camisa"]),
-    ("Remeras O", ["remeras_o", "remeras_O", "remera_o"]),
-    ("Remeras V", ["remerasv", "remeras_v", "remerav"]),
+    ("Remeras O", ["remeraso", "remeras_o"]),
+    ("Remeras V", ["remerasv", "remeras_v"]),
     ("Wafle", ["wafle"]),
     ("Joggins", ["joggin"]),
     ("Gabardina", ["gabardina"]),

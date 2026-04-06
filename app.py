@@ -408,35 +408,24 @@ st.markdown("""
         border-color: rgba(42, 78, 203, 0.2);
         box-shadow: 0 4px 24px rgba(42, 78, 203, 0.06);
     }
-    /* Force summary to flex with proper spacing */
+    /* Hide the default toggle icon completely to avoid overlap */
+    [data-testid="stExpander"] [data-testid="stExpanderToggleIcon"] {
+        display: none !important;
+    }
     [data-testid="stExpander"] details > summary {
-        display: flex !important;
-        flex-direction: row !important;
-        align-items: center !important;
-        gap: 14px !important;
         padding: 16px 24px !important;
         color: #e0e7f1 !important;
         font-weight: 500 !important;
         font-size: 0.85rem !important;
         transition: all 0.2s ease;
         cursor: pointer;
+        list-style: none !important;
+    }
+    [data-testid="stExpander"] details > summary::-webkit-details-marker {
+        display: none !important;
     }
     [data-testid="stExpander"] details > summary:hover {
         color: #ffffff !important;
-    }
-    /* Arrow icon — fixed size, no overlap */
-    [data-testid="stExpander"] details > summary > span:first-child,
-    [data-testid="stExpander"] details > summary > svg,
-    [data-testid="stExpander"] details > summary > div:first-child {
-        flex-shrink: 0 !important;
-        min-width: 20px !important;
-        width: 20px !important;
-    }
-    /* Text content — take remaining space */
-    [data-testid="stExpander"] details > summary > span:last-child,
-    [data-testid="stExpander"] details > summary > div:last-child {
-        flex: 1 !important;
-        min-width: 0 !important;
     }
     [data-testid="stExpander"] summary p {
         color: #e0e7f1 !important;
@@ -444,15 +433,6 @@ st.markdown("""
         word-break: break-word !important;
         line-height: 1.6 !important;
         margin: 0 !important;
-        padding-left: 0 !important;
-    }
-    /* Toggle icon position override — prevent absolute positioning */
-    [data-testid="stExpander"] [data-testid="stExpanderToggleIcon"] {
-        position: relative !important;
-        top: auto !important;
-        left: auto !important;
-        flex-shrink: 0 !important;
-        margin-right: 4px !important;
     }
 
     /* === DATAFRAME === */
